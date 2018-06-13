@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "caffe/util/cpu_info.hpp"
 
@@ -272,7 +273,7 @@ void Collection::updateCpuInformation(const Processor &processor,
    be limited by system eg. when numactl was used. */
 
 #include <omp.h>
-#include <sched.h>
+// #include <sched.h>
 
 static const char *openMpEnvVars[] = {
   "OMP_CANCELLATION", "OMP_DISPLAY_ENV", "OMP_DEFAULT_DEVICE", "OMP_DYNAMIC",
@@ -324,7 +325,8 @@ bool OpenMpManager::isMajorThread(boost::thread::id currentThread) {
 void OpenMpManager::bindCurrentThreadToNonPrimaryCoreIfPossible() {
   OpenMpManager &openMpManager = getInstance();
   if (openMpManager.isThreadsBindAllowed()) {
-    int totalNumberOfAvailableCores = CPU_COUNT(&openMpManager.currentCoreSet);
+    //int totalNumberOfAvailableCores = CPU_COUNT(&openMpManager.currentCoreSet);
+	int totalNumberOfAvailableCores = std::thread::hardware_concurrency();
     int logicalCoreToBindTo = totalNumberOfAvailableCores > 1 ? 1 : 0;
     openMpManager.bindCurrentThreadToLogicalCoreCpus(logicalCoreToBindTo);
   }
@@ -354,17 +356,21 @@ void OpenMpManager::getOpenMpEnvVars() {
 }
 
 void OpenMpManager::getCurrentCpuSet() {
+  /*
   if (sched_getaffinity(0, sizeof(currentCpuSet), &currentCpuSet)) {
-    getDefaultCpuSet(&currentCpuSet);
+  getDefaultCpuSet(&currentCpuSet);
   }
+  */
 }
 
 void OpenMpManager::getDefaultCpuSet(cpu_set_t *defaultCpuSet) {
+  /*
   CPU_ZERO(defaultCpuSet);
   unsigned numberOfProcessors = collection.getNumberOfProcessors();
   for (int processorId = 0; processorId < numberOfProcessors; processorId++) {
-    CPU_SET(processorId, defaultCpuSet);
+  CPU_SET(processorId, defaultCpuSet);
   }
+  */
 }
 
 /* Function getCurrentCoreSet() fills currentCoreSet variable with a set of
@@ -373,6 +379,7 @@ void OpenMpManager::getDefaultCpuSet(cpu_set_t *defaultCpuSet) {
    available. */
 
 void OpenMpManager::getCurrentCoreSet() {
+	/*
   unsigned numberOfProcessors = collection.getNumberOfProcessors();
   unsigned totalNumberOfCpuCores = collection.getTotalNumberOfCpuCores();
 
@@ -389,9 +396,11 @@ void OpenMpManager::getCurrentCoreSet() {
       }
     }
   }
+  */
 }
 
 void OpenMpManager::selectAllCoreCpus(cpu_set_t *set, unsigned physicalCoreId) {
+/*
   unsigned numberOfProcessors = collection.getNumberOfProcessors();
   unsigned totalNumberOfCpuCores = collection.getTotalNumberOfCpuCores();
 
@@ -403,9 +412,11 @@ void OpenMpManager::selectAllCoreCpus(cpu_set_t *set, unsigned physicalCoreId) {
 
     processorId += totalNumberOfCpuCores;
   }
+  */
 }
 
 unsigned OpenMpManager::getPhysicalCoreId(unsigned logicalCoreId) {
+	/*
   unsigned numberOfProcessors = collection.getNumberOfProcessors();
 
   for (int processorId = 0; processorId < numberOfProcessors; processorId++) {
@@ -417,6 +428,7 @@ unsigned OpenMpManager::getPhysicalCoreId(unsigned logicalCoreId) {
   }
 
   LOG(FATAL) << "This should never happen!";
+  */
   return 0;
 }
 
@@ -426,25 +438,29 @@ bool OpenMpManager::isThreadsBindAllowed() {
 
 // Limit of threads to number of logical cores available
 void OpenMpManager::setOpenMpThreadNumberLimit() {
-  omp_set_num_threads(CPU_COUNT(&currentCoreSet));
+	omp_set_num_threads(std::thread::hardware_concurrency());
+  //omp_set_num_threads(CPU_COUNT(&currentCoreSet));
 }
 
 void OpenMpManager::bindCurrentThreadToLogicalCoreCpu(unsigned logicalCoreId) {
   unsigned physicalCoreId = getPhysicalCoreId(logicalCoreId);
 
-  cpu_set_t set;
-  CPU_ZERO(&set);
-  CPU_SET(physicalCoreId, &set);
-  sched_setaffinity(0, sizeof(set), &set);
+  //cpu_set_t set;
+  //CPU_ZERO(&set);
+  //CPU_SET(physicalCoreId, &set);
+  //sched_setaffinity(0, sizeof(set), &set);
 }
 
 void OpenMpManager::bindCurrentThreadToLogicalCoreCpus(unsigned logicalCoreId) {
   unsigned physicalCoreId = getPhysicalCoreId(logicalCoreId);
 
-  cpu_set_t set;
-  CPU_ZERO(&set);
-  selectAllCoreCpus(&set, physicalCoreId);
-  sched_setaffinity(0, sizeof(set), &set);
+  //auto thread = GetCurrentThread();
+  //auto s = SetThreadAffinityMask(thread, affinity_cores[pin_core_id]);
+
+  //cpu_set_t set;
+  //CPU_ZERO(&set);
+  //selectAllCoreCpus(&set, physicalCoreId);
+  //sched_setaffinity(0, sizeof(set), &set);
 }
 
 void OpenMpManager::printVerboseInformation() {

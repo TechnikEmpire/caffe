@@ -35,6 +35,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if defined(_MSC_VER)
+#include <process.h>
+#define getpid() _getpid()
+#endif
+
 #include <boost/thread.hpp>
 #include <glog/logging.h>
 #include <cmath>
@@ -66,8 +71,14 @@ int64_t cluster_seedgen(void) {
   return 4013;
 #else
   int64_t s, seed, pid;
-  FILE* f = fopen("/dev/urandom", "rb");
+  FILE* f;
+#if defined(_MSC_VER)
+  auto err = fopen_s(&f, "/dev/urandom", "rb");
+  if (err == 0 && f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
+#else
+  f = fopen_s("/dev/urandom", "rb");
   if (f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
+#endif
     fclose(f);
     return seed;
   }
@@ -86,8 +97,12 @@ int64_t cluster_seedgen(void) {
 
 
 void GlobalInit(int* pargc, char*** pargv) {
+
+#ifdef INTELCAFFE_CLI
   // Google flags.
   ::gflags::ParseCommandLineFlags(pargc, pargv, true);
+#endif
+
   // Google logging.
   ::google::InitGoogleLogging(*(pargv)[0]);
   // Provide a backtrace on segfault.

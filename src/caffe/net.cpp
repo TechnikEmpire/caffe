@@ -138,17 +138,23 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
   CHECK(Caffe::root_solver() || root_net_)
       << "root_net_ needs to be set for all non-root solvers";
 
+
+  fLI::FLAGS_minloglevel = 2;
+
 #ifdef _OPENMP
   static bool executed = false;
   if (!executed) {
+
     if (Caffe::mode() == Caffe::GPU) {
       caffe::cpu::OpenMpManager::setGpuEnabled();
     } else {
       caffe::cpu::OpenMpManager::setGpuDisabled();
     }
 
+
     caffe::cpu::OpenMpManager::bindOpenMpThreads();
     caffe::cpu::OpenMpManager::printVerboseInformation();
+
   }
 #endif
 

@@ -39,8 +39,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CAFFE_UTIL_CPU_INFO_HPP
 
 #include <boost/thread/thread.hpp>
+#ifndef _MSC_VER
 #include <sched.h>
+#endif // _MSC_VER
 #include <cstdio>
+
 #include <cstdlib>
 #include <cstring>
 #include <set>
@@ -132,7 +135,11 @@ class Collection : public CollectionInterface {
 
 #ifdef _OPENMP
 
+/* Data structure to describe CPU mask.  */
+typedef struct cpu_set_t;
+
 class OpenMpManager {
+
  public:
   static void setGpuEnabled();
   static void setGpuDisabled();
@@ -151,8 +158,8 @@ class OpenMpManager {
 
   bool isGpuEnabled;
   bool isAnyOpenMpEnvVarSpecified;
-  cpu_set_t currentCpuSet;
-  cpu_set_t currentCoreSet;
+  //cpu_set_t currentCpuSet;
+  //cpu_set_t currentCoreSet;
 
   explicit OpenMpManager(Collection *collection);
   OpenMpManager(const OpenMpManager &openMpManager);

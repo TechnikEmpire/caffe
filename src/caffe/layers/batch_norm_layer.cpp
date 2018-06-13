@@ -42,6 +42,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "caffe/layers/batch_norm_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace caffe {
 
 template <typename Dtype>
@@ -125,10 +129,14 @@ void BatchNormLayer<Dtype>::replicate(Dtype* buffer_to_write,
                                       unsigned int channel_offset_incr,
                                       const Dtype* data_to_be_replicated) {
 #ifdef _OPENMP
-  #pragma omp parallel for collapse(2)
+	#ifdef _WIN32
+		#pragma omp parallel for
+	#else
+		#pragma omp parallel for collapse(2)
+	#endif
 #endif
-  for (unsigned int j = 0; j< channels_; ++j) {
-    for (unsigned int n = 0; n < num_batches; ++n) {
+  for (int j = 0; j< channels_; ++j) {
+    for (int n = 0; n < num_batches; ++n) {
       caffe_set(channel_offset_incr, data_to_be_replicated[j],
         buffer_to_write + j * channel_offset_incr + n * batch_offset_incr);
     }
@@ -144,10 +152,14 @@ void BatchNormLayer<Dtype>::replicate_to_op(Dtype* buffer_to_write,
                                       const Dtype* data_to_be_replicated,
                                       FuncTy op_func) {
 #ifdef _OPENMP
-  #pragma omp parallel for collapse(2)
+	#ifdef _WIN32
+		#pragma omp parallel for
+	#else
+		#pragma omp parallel for collapse(2)
+	#endif
 #endif
-  for (unsigned int j = 0; j< channels_; ++j) {
-    for (unsigned int n = 0; n < num_batches; ++n) {
+  for (int j = 0; j< channels_; ++j) {
+    for (int n = 0; n < num_batches; ++n) {
       Dtype value = data_to_be_replicated[j];
       Dtype* buffer_offsetted =
         buffer_to_write + j * channel_offset_incr + n * batch_offset_incr;

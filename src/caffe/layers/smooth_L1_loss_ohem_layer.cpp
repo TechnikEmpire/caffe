@@ -162,7 +162,11 @@ void SmoothL1LossOHEMLayer<Dtype>::Forward_cpu(
     // Output per-instance loss
     if (top.size() >= 2) {
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2)
+	#ifdef _WIN32
+		#pragma omp parallel for
+	#else
+		#pragma omp parallel for collapse(2)
+	#endif
 #endif
         for (int i = 0; i < outer_num_; ++i) {
             for (int j = 0; j < inner_num_; j++) {

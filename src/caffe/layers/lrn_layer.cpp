@@ -168,7 +168,11 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
   caffe_set(num_ * channels_ * height_ * width_, Dtype(k_), scale_data);
 
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2)
+	#ifdef _WIN32
+		#pragma omp parallel for
+	#else
+		#pragma omp parallel for collapse(2)
+	#endif
 #endif
   for (int n = 0; n < num_; n++) {
     for (int c = 0; c < channels_; c++) {

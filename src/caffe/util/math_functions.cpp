@@ -117,8 +117,7 @@ void caffe_set(const size_t N, const Dtype alpha, Dtype* Y) {
   if (omp_in_parallel() == 0) {
     // inactive parallel region may mean also batch 1,
     // but no new threads are to be created
-    run_parallel = run_parallel && (Caffe::mode() != Caffe::GPU) &&
-                   (N >= threshold);
+    run_parallel = run_parallel && (Caffe::mode() != Caffe::GPU) && (N >= threshold);
   } else {
     // If we are running active parallel region then it is CPU
     run_parallel = run_parallel && (N >= threshold);
@@ -126,7 +125,7 @@ void caffe_set(const size_t N, const Dtype alpha, Dtype* Y) {
 
   if (run_parallel) {
     #pragma omp parallel for
-    for (size_t i = 0; i < N; ++i) {
+    for (long i = 0; i < N; ++i) {
       Y[i] = alpha;
     }
 
@@ -179,7 +178,7 @@ void caffe_cpu_copy(const size_t N, const Dtype* X, Dtype* Y) {
     const int block_mem_size = 256 * 1024;
     const int block_size = block_mem_size / sizeof(Dtype);
     #pragma omp parallel for
-    for (size_t i = 0; i < N; i += block_size)
+    for (long i = 0; i < N; i += block_size)
       memcpy(Y + i, X + i,
               (i + block_size > N) ? (N - i) * sizeof(Dtype) : block_mem_size);
 
@@ -427,10 +426,7 @@ static void bernoulli_generate(long n, double p, int* r) {
 #ifdef _OPENMP
   int nthr = omp_get_max_threads();
   int threshold = nthr * caffe::cpu::OpenMpManager::getProcessorSpeedMHz() / 3;
-  bool run_parallel =
-    (Caffe::mode() != Caffe::GPU) &&
-    (omp_in_parallel() == 0) &&
-    (n >= threshold);
+  bool run_parallel = (Caffe::mode() != Caffe::GPU) && (omp_in_parallel() == 0); (n >= threshold);
   if (!run_parallel) nthr = 1;
 
 # pragma omp parallel num_threads(nthr)

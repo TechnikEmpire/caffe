@@ -70,10 +70,11 @@ void MKLEltwiseLayer<Dtype>::Init(const vector<Blob<Dtype>*>& bottom,
 
   num_bottoms = bottom.size();
   size_t dim_src = bottom[0]->shape().size();
-  size_t sizes_src[dim_src], strides_src[dim_src];
+  size_t sizes_src[dim_src];
+  size_t strides_src[dim_src];
   for (size_t d = 0; d < dim_src; ++d) {
-      sizes_src[d] = bottom[0]->shape()[dim_src - d - 1];
-      strides_src[d] = (d == 0) ? 1 : strides_src[d-1]*sizes_src[d-1];
+      sizes_src[d] = (bottom[0]->shape()[dim_src - d - 1]);
+	  strides_src[d] = ((d == 0) ? 1 : strides_src[d - 1] * sizes_src[d - 1]);
   }
 
   for (size_t i = 0; i < num_bottoms; ++i) {

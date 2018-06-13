@@ -1,3 +1,9 @@
+#if defined(_MSC_VER)
+#include <corecrt_math_defines.h>
+#endif
+
+#include <glog/logging.h>
+
 namespace caffe {
 
 class KernelParameters {

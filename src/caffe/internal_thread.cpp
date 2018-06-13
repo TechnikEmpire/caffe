@@ -35,8 +35,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include <boost/thread.hpp>
 #include <exception>
+#include <thread>
 
 #include "caffe/internal_thread.hpp"
 #include "caffe/util/cpu_info.hpp"
@@ -87,7 +92,9 @@ void InternalThread::entry(int device, Caffe::Brew mode, int rand_seed,
   Caffe::set_root_solver(root_solver);
 
 #ifdef _OPENMP
+
   caffe::cpu::OpenMpManager::bindCurrentThreadToNonPrimaryCoreIfPossible();
+
 #endif
 
   SetThreadAffinity();
@@ -121,20 +128,38 @@ void InternalThread::SetThreadAffinity() {
   }
 
   if (ncores > 0) {
-    int pin_core_id = count % ncores;
-    cpu_set_t set;
-    CPU_ZERO(&set);
-    CPU_SET(affinity_cores[pin_core_id], &set);
-    pthread_t thread = pthread_self();
-    int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
+    int pin_core_id = count % ncores;    
+
+#ifdef _MSC_VER
+
+	// TODO - We don't really care about this, so we'll just exclude it, but
+	// we should look into it.
+	// This isn't really right, but it won't be called anyway because we're
+	// not supporting CLI ATM and thus setenv stuff won't be run and thus
+	// this variable will be empty (see above, getenv call).
+	auto thread = GetCurrentThread();
+	auto s = SetThreadAffinityMask(thread, affinity_cores[pin_core_id]);
+#else
+	cpu_set_t set;
+	CPU_ZERO(&set);
+	CPU_SET(affinity_cores[pin_core_id], &set);
+	pthread_t thread = pthread_self();
+	int s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &set);
+#endif
+
     if (s != 0) {
       LOG(WARNING) << "Cannot set affinity for internal thread!";
     }
-    for (int j=0; j<CPU_SETSIZE; j++) {
-      if (CPU_ISSET(j, &set)) {
-        LOG(INFO) << "Internal thread is affinitized to core " << j;
-      }
-    }
+    
+	// TODO - We don't really care about this, so we'll just exclude it, but
+	// we should look into it.
+#if false
+	for (int j = 0; j<CPU_SETSIZE; j++) {
+		if (CPU_ISSET(j, &set)) {
+			LOG(INFO) << "Internal thread is affinitized to core " << j;
+		}
+	}
+#endif
   }
   count++;
 }

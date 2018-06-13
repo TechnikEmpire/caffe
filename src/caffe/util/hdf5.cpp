@@ -65,6 +65,7 @@ void hdf5_load_nd_dataset_helper(
       file_id, dataset_name_, dims.data(), &class_, NULL);
   CHECK_GE(status, 0) << "Failed to get dataset info for " << dataset_name_;
   switch (class_) {
+#if INTELCAFFE_MACROBUG
   case H5T_FLOAT:
     LOG_FIRST_N(INFO, 1) << "Datatype class: H5T_FLOAT";
     break;
@@ -91,7 +92,9 @@ void hdf5_load_nd_dataset_helper(
     LOG(FATAL) << "Unsupported datatype class: H5T_ARRAY";
   default:
     LOG(FATAL) << "Datatype class unknown";
+#endif
   }
+
 
   vector<int> blob_dims(dims.size());
   for (int i = 0; i < dims.size(); ++i) {

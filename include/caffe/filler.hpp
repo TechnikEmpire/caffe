@@ -181,8 +181,15 @@ template <typename Dtype> class XavierFiller : public Filler<Dtype> {
   virtual void Fill(Blob<Dtype> *blob) {
     CHECK(blob->count());
     int fan_in = blob->count() / blob->shape(0);
-    int fan_out = blob->count() / blob->shape(1);
-    Dtype n = fan_in;  // default to fan_in
+    
+	// See https://github.com/BVLC/caffe/pull/6278/commits/412f18dcf204fc054b09dbfdda73b99d903149f4
+	//int fan_out = blob->count() / blob->shape(1);
+	// Compatibility with ND blobs
+	int fan_out = blob->num_axes() > 1 ?
+		 blob->count() / blob->shape(1) :
+		 blob->count();
+    
+	Dtype n = fan_in;  // default to fan_in
     if (this->filler_param_.variance_norm() ==
         FillerParameter_VarianceNorm_AVERAGE) {
       n = (fan_in + fan_out) / Dtype(2);
@@ -221,7 +228,14 @@ template <typename Dtype> class MSRAFiller : public Filler<Dtype> {
   virtual void Fill(Blob<Dtype> *blob) {
     CHECK(blob->count());
     int fan_in = blob->count() / blob->shape(0);
-    int fan_out = blob->count() / blob->shape(1);
+    
+	//int fan_out = blob->count() / blob->shape(1);
+	// See https://github.com/BVLC/caffe/pull/6278/commits/412f18dcf204fc054b09dbfdda73b99d903149f4
+	// Compatibility with ND blobs
+	int fan_out = blob->num_axes() > 1 ?
+		blob->count() / blob->shape(1) :
+		blob->count();
+
     Dtype n = fan_in;  // default to fan_in
     if (this->filler_param_.variance_norm() ==
         FillerParameter_VarianceNorm_AVERAGE) {

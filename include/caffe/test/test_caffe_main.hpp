@@ -35,6 +35,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef INTELCAFFE_TESTS
 // The main caffe test code. Your test cpp code should include this hpp
 // to allow a main function to be compiled into the binary.
 #ifndef CAFFE_TEST_TEST_CAFFE_MAIN_HPP_
@@ -112,5 +113,8 @@ typedef ::testing::Types<CPUDevice<float>, CPUDevice<double>,
 #endif
 
 }  // namespace caffe
+
+
+#endif // INTELCAFFE_TESTS
 
 #endif  // CAFFE_TEST_TEST_CAFFE_MAIN_HPP_
